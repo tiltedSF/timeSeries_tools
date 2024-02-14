@@ -1,3 +1,14 @@
+# Test TS wich can use
+# https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data?select=sample_submission.csv
+
+# TODO:
+# fix plot_components
+# fix in to_vanga add draw_forecast
+# fix draw_table_of_future_trend without gridSearch
+# add method of validation loss
+# add Decompose
+# add Anomalys
+
 # Standart
 import pandas as pd
 import numpy as np
@@ -25,16 +36,18 @@ rcParams['figure.figsize'] = 15, 7
 
 class time_series:    
     def __init__(self, df, interval = 90, test_size = 30, interval_width = 0.95, loss = 'MAPE'):
-        self.data = df
+        self.data = df.copy()
+        self.data['ds'] = pd.to_datetime(self.data['ds'])
         self.interval = interval
         self.test_size = test_size
         self.interval_width = interval_width
         self.loss = loss
         
-        self.data_train = df.iloc[: -test_size] 
-        self.data_test = df.iloc[-test_size:]
+        self.data_train = self.data.iloc[: -test_size] 
+        self.data_test = self.data.iloc[-test_size:]
         
         self.parametres_dict = {}
+        self.losses_with_parameters_table = None
     
     # ============ Setters ============
     def set_inteval(self, interval):
@@ -185,6 +198,10 @@ class time_series:
         plt.show()
         
     def draw_table_of_future_trend(self, future_quater=None):
+        if self.losses_with_parameters_table is None:
+            print('Выдать ожидаемый прирост исходя из ошибки на валидации сейчас нельзя, так как надо посмотреть на ошибки на валидации. Запустить метод гридсерча или ошибки на валидации.')
+            return
+
         MAPE = self.losses_with_parameters_table['MAPE'][0]
         
         if future_quater is None: 
