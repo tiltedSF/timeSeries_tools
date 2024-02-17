@@ -1,11 +1,12 @@
-# Test TS wich can use
+# Test TS which can use
 # https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data?select=sample_submission.csv
 
 # TODO:
 # fix plot_components
 # fix in to_vanga add draw_forecast
 # fix draw_table_of_future_trend without gridSearch
-# add method of validation loss
+# fix module_pocket
+# add method - validation loss
 # add Decompose
 # add Anomalys
 
