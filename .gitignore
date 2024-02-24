@@ -2,3 +2,4 @@
 .idea/
 .ipynb_checkpoints/
 utils/__pycache__/
+test.ipynb
