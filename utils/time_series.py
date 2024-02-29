@@ -4,9 +4,12 @@ import random
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.dates
+from scipy import stats
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 from sklearn.model_selection import ParameterGrid
+
+from statsmodels.tsa.seasonal import STL
 
 from prophet import Prophet
 from utils import rrcf
@@ -194,10 +197,12 @@ class time_series:
         self.forecast = self.prophet_model.predict(future_df)
         # Выдать ошибки на валидации
         if self.losses_with_parameters_table is None:
-            test = self.forecast[['ds', 'yhat']].iloc[-(self.test_size + self.interval):-self.interval]
-            MSE = mean_squared_error(self.data_test['y'], test['yhat'])
-            MAE = mean_absolute_error(self.data_test['y'], test['yhat'])
-            MAPE = mean_absolute_percentage_error(self.data_test['y'], abs(test['yhat']))
+            train_forecast = self.data_test[['ds']]
+            train_forecast = self.prophet_model.predict(train_forecast)
+
+            MSE = mean_squared_error(self.data_test['y'], train_forecast['yhat'])
+            MAE = mean_absolute_error(self.data_test['y'], train_forecast['yhat'])
+            MAPE = mean_absolute_percentage_error(self.data_test['y'], abs(train_forecast['yhat']))
 
             self.losses_with_parameters_table = pd.DataFrame({'MSE': MSE, 'MAE': MAE, 'MAPE': MAPE,
                                                          'changepoint_prior_scale': self.parametres_dict[
@@ -362,6 +367,35 @@ class time_series:
         :print: graphs with componets of the model
         """
         self.prophet_model.plot_components(self.forecast);
+
+    # ============ Decompose ============
+    def plot_decompose(self, period=None, robust=True):
+        """
+        If period is not specified use search in {2, 3, 5, 7, 14, 21, 28, 30, 31, 90, 182, 364} periods
+        *Better if you know your period
+        :param period: <int> Periodicity of the sequence
+        :param robust: <boolean> Use reobust for STL?
+        :print: decompose TS
+        """
+        if period is None:
+            min_pval = np.inf
+            min_period = 2
+
+            for i in [2, 3, 5, 7, 14, 21, 28, 30, 31, 90, 182, 364]:
+                tmp_stl = STL(self.data['y'], period=i, robust=robust).fit()
+
+                cur_pval = stats.normaltest(tmp_stl.resid).pvalue
+                if cur_pval < min_pval:
+                    min_pval = cur_pval
+                    min_period = i
+            period = min_period
+            print(f'Лучшая длина периода, основываясь на остатках = {period}')
+
+        stl = STL(self.data['y'], period=period, robust=robust)
+        res = stl.fit()
+        res.plot()
+        plt.show()
+
 
     def draw_table_of_future_quater_trend(self, future_quater=None):
         """
