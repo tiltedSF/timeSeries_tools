@@ -10,6 +10,7 @@
   - new regressors
   - error = rmse, WAPE
   - requirements.txt
+  - Durbin–Watson for AR
 - **tune:**
   - Decompose
   - Table on the future Q
