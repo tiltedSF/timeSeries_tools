@@ -385,7 +385,7 @@ class time_series:
                 tmp_stl = STL(self.data['y'], period=i, robust=robust).fit()
 
                 cur_pval = stats.normaltest(tmp_stl.resid).pvalue
-                if cur_pval < min_pval:
+                if cur_pval > min_pval:
                     min_pval = cur_pval
                     min_period = i
             period = min_period
